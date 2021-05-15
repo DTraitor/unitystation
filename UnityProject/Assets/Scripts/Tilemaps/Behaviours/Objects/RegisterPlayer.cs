@@ -175,7 +175,12 @@ public class RegisterPlayer : RegisterTile, IServerSpawn, RegisterPlayer.IContro
 	{
 		EnsureInit();
 		this.isLayingDown = isDown;
-		HandleGetupAnimation(isDown == false);
+
+		if (CustomNetworkManager.IsServer)
+		{
+			HandleGetupAnimation(isDown == false);
+		}
+
 		if (isDown)
 		{
 			//uprightSprites.ExtraRotation = Quaternion.Euler(0, 0, -90);
@@ -220,6 +225,9 @@ public class RegisterPlayer : RegisterTile, IServerSpawn, RegisterPlayer.IContro
 	public void ServerHelpUp()
 	{
 		if (!IsLayingDown) return;
+
+		// Can't help a player up if they're rolling
+		if (playerScript.playerNetworkActions.IsRolling) return;
 
 		// Check if lying down because of stun. If stunned, there is a chance helping can fail.
 		if (IsSlippingServer && Random.Range(0, 100) > HELP_CHANCE) return;

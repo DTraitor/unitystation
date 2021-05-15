@@ -20,7 +20,7 @@ namespace HealthV2
 	/// </Summary>
 	[RequireComponent(typeof(HealthStateController))]
 	[RequireComponent(typeof(MobSickness))]
-	public abstract class LivingHealthMasterBase : NetworkBehaviour
+	public abstract class LivingHealthMasterBase : NetworkBehaviour, IFireExposable
 	{
 		/// <summary>
 		/// Server side, each mob has a different one and never it never changes
@@ -63,11 +63,6 @@ namespace HealthV2
 					if (isServer)
 					{
 						OnConsciousStateChangeServer.Invoke(oldState, value);
-					}
-
-					if (value == ConsciousState.DEAD)
-					{
-						Death();
 					}
 				}
 			}
@@ -552,7 +547,7 @@ namespace HealthV2
 
 			if (hasAllHeartAttack)
 			{
-				SetConsciousState(ConsciousState.DEAD);
+				Death();
 			}
 		}
 
@@ -594,7 +589,10 @@ namespace HealthV2
 				}
 			}
 
-			EffectsFactory.BloodSplat(RegisterTile.WorldPositionServer, BloodSplatSize.large, BloodSplatType.red);
+			if (damageType == DamageType.Brute)
+			{
+				EffectsFactory.BloodSplat(RegisterTile.WorldPositionServer, BloodSplatSize.large, BloodSplatType.red);
+			}
 		}
 
 		/// <summary>
@@ -612,8 +610,10 @@ namespace HealthV2
 
 			body.TakeDamage(damagedBy, damage, attackType, damageType);
 
-			EffectsFactory.BloodSplat(RegisterTile.WorldPositionServer, BloodSplatSize.large, BloodSplatType.red);
-			//TODO: Reimplement
+			if (damageType == DamageType.Brute)
+			{
+				EffectsFactory.BloodSplat(RegisterTile.WorldPositionServer, BloodSplatSize.large, BloodSplatType.red);
+			}
 		}
 
 		/// <summary>
@@ -730,7 +730,10 @@ namespace HealthV2
 				}
 			}
 
-			EffectsFactory.BloodSplat(RegisterTile.WorldPositionServer, BloodSplatSize.large, BloodSplatType.red);
+			if (damageType == DamageType.Brute)
+			{
+				EffectsFactory.BloodSplat(RegisterTile.WorldPositionServer, BloodSplatSize.large, BloodSplatType.red);
+			}
 		}
 
 		/// <summary>
@@ -897,6 +900,7 @@ namespace HealthV2
 		///</Summary>
 		public virtual void Death()
 		{
+			SetConsciousState(ConsciousState.DEAD);
 			OnDeathActions();
 			UpdateManager.Remove(CallbackType.UPDATE, UpdateMe);
 			UpdateManager.Remove(CallbackType.PERIODIC_UPDATE, PeriodicUpdate);
@@ -930,6 +934,12 @@ namespace HealthV2
 		public void UpdateClientBrainStats(bool isHusk, int brainDamage)
 		{
 			//TODO: Reimplement
+		}
+
+		public void OnExposed(FireExposure exposure)
+		{
+			ChangeFireStacks(1f);
+			ApplyDamageAll(null, 0.25f, AttackType.Fire, DamageType.Burn, false);
 		}
 
 		/// <summary>

@@ -441,4 +441,30 @@ public static class SweetExtensions
 			: Comparer<T>.Default.Compare(value, min) > 0
 			  && Comparer<T>.Default.Compare(value, max) < 0;
 	}
+
+	/// <summary>
+	/// See <see cref="Mathf.Approximately(float, float)"/>
+	/// </summary>
+	public static bool Approx(this float thisValue, float value)
+	{
+		return Mathf.Approximately(thisValue, value);
+	}
+
+	/// <summary>
+	/// See if two colours are approximately the same
+	/// </summary>
+	public static bool ColorApprox(this Color a, Color b, bool checkAlpha = true)
+	{
+		if (checkAlpha)
+		{
+			return Mathf.Approximately(a.b, b.b) &&
+			       Mathf.Approximately(a.r, b.r) &&
+			       Mathf.Approximately(a.g, b.g) &&
+			       Mathf.Approximately(a.a, b.a);
+		}
+
+		return Mathf.Approximately(a.b, b.b) &&
+			   Mathf.Approximately(a.r, b.r) &&
+		       Mathf.Approximately(a.g, b.g);
+	}
 }
